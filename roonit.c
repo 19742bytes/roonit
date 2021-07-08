@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
              if (argc > 2) {
                  snprintf(service, sizeof(service), "/var/service/%s", argv[2]);
                  snprintf(sv, sizeof(sv), "unlink %s", service);
-                 system(sv); //There's probably some cool way to unlink things in C
+                 int cmd = system(sv); //There's probably some cool way to unlink things in C
 		 if (cmd != 0) {
                     printf("Command failed to execute due to the reason above\n");
                     exit(1);
