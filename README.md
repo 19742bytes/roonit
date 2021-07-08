@@ -2,11 +2,11 @@
 "roonit" is a simple tool for enabling and disabling services in runit (Void Linux).
 
 ## "Installing"
-Pretty much just run `make`, then copy it to /usr/local/bin
+Pretty much just run `make`, then copy it to /usr/local/bin  
 Requires GCC
 
 ## Usage
-`roonit enable <service>` will enable a service located in /etc/sv/
+`roonit enable <service>` will enable a service located in /etc/sv/  
 `roonit disable <service>` will remove a service in /var/service/
 
 ## TODO:
