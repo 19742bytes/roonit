@@ -21,7 +21,11 @@ int main(int argc, char *argv[]) {
         if (argc > 2) {
             snprintf(service, sizeof(service), "/etc/sv/%s", argv[2]);
             snprintf(sv, sizeof(sv), "ln -s %s %s", service, dir);
-            system(sv); // idk how to use symlinkat() because i'm stupid
+            int cmd = system(sv); // idk how to use symlinkat() because i'm stupid
+	    if (cmd != 0) {
+               printf("Command failed to execute due to the reason above\n");
+               exit(1);
+            }
             printf("Created symlink %s -> %s\n", service, dir);
             exit(0);
         }
@@ -32,6 +36,10 @@ int main(int argc, char *argv[]) {
                  snprintf(service, sizeof(service), "/var/service/%s", argv[2]);
                  snprintf(sv, sizeof(sv), "unlink %s", service);
                  system(sv); //There's probably some cool way to unlink things in C
+		 if (cmd != 0) {
+                    printf("Command failed to execute due to the reason above\n");
+                    exit(1);
+                 }
                  printf("Unlinked %s\n", service);
                  exit(0);
                      }
@@ -39,11 +47,6 @@ int main(int argc, char *argv[]) {
              }
 	help();
 }
-
-
-
-
-
 
 
 
