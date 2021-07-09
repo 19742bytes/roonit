@@ -17,7 +17,7 @@ const char dir[] = "/var/service";
 char sv[256];
 
 int main(int argc, char *argv[]) {
-	if (argc != 2) { //If this OR that
+	if (argc != 2) { 
 		help();
 		exit(1);
 	}
