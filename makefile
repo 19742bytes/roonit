@@ -1,5 +1,5 @@
 roonit: roonit.c
-	$(CC) -O3 -o roonit roonit.c
+	$(CC) -Os -s -o roonit roonit.c
 	
 install: roonit
 	cp ./roonit /usr/local/bin
