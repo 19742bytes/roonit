@@ -4,16 +4,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h> //This adds support for getopts()
+#include <stdbool.h> // support for bool type?
 
-#define clRED "\x1b[31m"
+//Defines colors so I don't have to
+#define clRED "\x1b[31m" 
+#define clGREEN "\x1b[32m"
+#define clYELLOW "\x1b[33m" //gonna implement these sooner or later
 #define clRST "\x1b[0m"
 
+
+
+//Prototyping functions
 void help(void);
 void usage_enable(void);
 void usage_disable(void);
 void usage_start(void);
 void usage_stop(void);
 void usage_status(void);
+int aSize(char * cmd1); //This function will an integer from a command (usually from wc -l)
+char * command(char * cmd1);//This function will return anything from the stdout of a command
+//There probably better ways to do the above. But if it works, it isn't *that* stupid
 
 
 char * service;
@@ -125,20 +135,85 @@ int main(int argc, char *argv[]) {
 	}
 	if (strcmp(argv[1],"status") == 0) { // This operates on black magic
 		if (argc > 2) {
+			bool all = false;
 			int c;
+			struct Service{
+				char * name;
+				char * on; 
+				char * boot; 
+			};
 			opterr = 0;
 			while ( (c = getopt(argc, argv, "a")) != -1){
 				switch(c) {
 					case 'a':
-						printf("This *would* show all the status'\n");
+						all = true;
 						break;
-					default:
+					default: 
 						fprintf(stderr, "-%c is not a valid option\n\n", optopt);
-						fprintf(stderr, "Infact, -a is the only option for the status option\n");
+						fprintf(stderr, "Infact, -a is the only option for the status option");
+						exit(1);
 						break;
 				}
 			}
-			//Cool code would go here
+			if (all == true){
+				int i;
+				char * s1 = command("ls /etc/sv|sort -d");
+				struct Service all[aSize("ls /etc/sv|wc -l")-1];
+				char delimit[] = "\n";
+				char wontcount[] = "/etc/sv/";
+				char wontcount2[] = "/supervise/stat";
+				char * supertemp;
+				char * supertemp2;
+				char *current = strtok(s1, delimit);
+				printf("%*s %*s %s\n", aSize("ls /etc/sv|wc -L"), "Service", 10, "Status", "Boot");
+				for (i = 0; i < aSize("ls /etc/sv|wc -l"); i++) { //broken?
+					all[i].name = current;
+					//There's probably a better way to do this
+					supertemp = (char*)malloc(sizeof(char)*(strlen(wontcount) + strlen(current) + strlen(wontcount2)));
+					if (!supertemp) {fprintf(stderr, "Not enough memory!\n"); exit(1);}
+					sprintf(supertemp, "%s%s%s", wontcount, current, wontcount2);
+					if (access(supertemp, F_OK) == 0){
+						supertemp2 = (char*)malloc(sizeof(char)*(6 + strlen(wontcount) + strlen(current)));
+						sprintf(supertemp2, "%s%s/down", wontcount, current);
+						if (access(supertemp2,  F_OK) == 0) { //checks for a down file
+							all[i].boot = "disabled";
+						}
+						else {
+							all[i].boot = "enabled";
+						}
+						free(supertemp2);
+						supertemp2 = (char*)malloc(sizeof(char)*(4 +strlen(supertemp)));
+						sprintf(supertemp2, "cat %s", supertemp);
+						if (strcmp(command(supertemp2),"run\n") == 0) {
+							all[i].on = "running";
+						}
+						else {
+							all[i].on = "stopped";
+						}
+						free(supertemp2);
+					}
+					else {
+						all[i].on = "stopped";
+						all[i].boot = "disabled";
+					}
+					free(supertemp);
+					current = strtok(NULL, delimit);
+					printf("%*s %*s %s\n", aSize("ls /etc/sv|wc -L"), all[i].name, 10, all[i].on, all[i].boot);
+				}
+				exit(0);
+			}
+			else { //This will just call the "sv status" command
+				sv = (char*)malloc(sizeof(char)*(strlen(argv[2] + strlen("sv status"))));
+				if (!sv) {fprintf(stderr, "Not enough memory!\n"); exit(1);}
+				sprintf(sv, "sv status %s", argv[2]);
+				int cmd = system(sv);
+				if (cmd != 0) {fprintf(stderr, "Failed to check status!\n"); exit(1);}
+				exit(0);
+
+			}
+			fprintf(stderr, "I don't understand how you ended up here\nBut here's the help message anyways:\n");
+			usage_status();
+			exit(1);
 		}
 		usage_status();
 		exit(1);
@@ -146,7 +221,62 @@ int main(int argc, char *argv[]) {
 	help();
 	exit(1);
 }
+//Useful function(s)
 
+int aSize(char * cmd1) {
+	FILE *tmp1;
+	char * cmd2;
+	char * res;
+	long size;
+	const char append[] = "> whywouldanyonenameafilethis";
+	cmd2 = (char*)malloc(sizeof(char)*(strlen(cmd1) + strlen(append)));
+	if (!cmd2){fprintf(stderr, "Not enough memory!\n"); exit(2);}
+	sprintf(cmd2, "%s %s", cmd1, append);
+	int succ = system(cmd2);
+	if (succ != 0) {fprintf(stderr, "Failed to create array!\n"); exit(2);}
+	//I fucking stole the following code from a guide
+	tmp1 = fopen("whywouldanyonenameafilethis", "r");
+	if (tmp1 == NULL) {fprintf(stderr, "Failed to open temporary file!\n"); exit(2);}
+	fseek(tmp1, 0L, SEEK_END);
+	size = ftell(tmp1);
+	fseek(tmp1, 0L, SEEK_SET);
+	res = (char*)calloc(size, sizeof(char));
+	if (res == NULL){fprintf(stderr, "Not enough memory!\n"); exit(2);}
+	fread(res, sizeof(char), size, tmp1);
+	fclose(tmp1);
+	//End of stolen code. From: http://www.fundza.com/c4serious/fileIO_reading_ALL/index.html
+	free(cmd2);
+	remove("whywouldanyonenameafilethis");
+	return atoi(res);
+}
+//I don't understand popen() rn. But this spaghetti works
+
+char * command(char * cmd1) {
+	FILE *tmp1;
+	char * cmd2;
+	char * res;
+	long size;
+	const char append[] = "> whywouldanyonenameafilethis";
+	cmd2 = (char*)malloc(sizeof(char)*(strlen(cmd1) + strlen(append)));
+	if (!cmd2){fprintf(stderr, "Not enough memory!\n"); exit(2);}
+	sprintf(cmd2, "%s %s", cmd1, append);
+	int succ = system(cmd2);
+	if (succ != 0) {fprintf(stderr, "Failed to create array!\n"); exit(2);}
+	//I fucking stole the following code from a guide
+	tmp1 = fopen("whywouldanyonenameafilethis", "r");
+	if (tmp1 == NULL) {fprintf(stderr, "Failed to open temporary file!\n"); exit(2);}
+	fseek(tmp1, 0L, SEEK_END);
+	size = ftell(tmp1);
+	fseek(tmp1, 0L, SEEK_SET);
+	res = (char*)calloc(size, sizeof(char));
+	if (res == NULL){fprintf(stderr, "Not enough memory!\n"); exit(2);}
+	fread(res, sizeof(char), size, tmp1);
+	fclose(tmp1);
+	//End of stolen code. From: http://www.fundza.com/c4serious/fileIO_reading_ALL/index.html
+	free(cmd2);
+	remove("whywouldanyonenameafilethis");
+	return res;
+}
 
 //General Help Message
 void help(void) {
@@ -184,10 +314,11 @@ void usage_stop(void) {
 }
 
 void usage_status(void) {
-	printf("Shows the status of a service\n");
+	printf("Shows the status of a service in the /var/service directory\n");
 	printf("Example: roonit status wpa_supplicant\n");
 	printf("roonit status "clRED"<service>\n"clRST);
 	printf("You can also use the -a switch to show the status of all services\n");
+	printf("roonit status -a\n");
 }
 /*
 I'm aware this can just be a bash script
