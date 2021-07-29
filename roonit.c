@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 						break;
 					default: 
 						fprintf(stderr, "-%c is not a valid option\n\n", optopt);
-						fprintf(stderr, "Infact, -a is the only option for the status option");
+						fprintf(stderr, "Infact, -a is the only option for the status option\n");
 						exit(1);
 						break;
 				}
