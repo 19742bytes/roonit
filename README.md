@@ -17,8 +17,8 @@
 
 ## TODO:
   - Figure out how to use `symlinkat()`
-  - Implement `roonit status` to show the status of services (and -a to show the status of all services)
-  - Fix this garbage code (Half fixed)
+  - Make this look neater
+  - Fix this garbage code
   - Properly learn the C programming language
 
 ## Credits/Special Thanks
