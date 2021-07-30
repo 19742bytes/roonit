@@ -21,7 +21,7 @@ void usage_disable(void);
 void usage_start(void);
 void usage_stop(void);
 void usage_status(void);
-int aSize(char * cmd1); //This function will an integer from a command (usually from wc -l)
+int aSize(char * cmd1); //This function will return an integer from a command (usually from wc -l)
 char * command(char * cmd1);//This function will return anything from the stdout of a command
 //There probably better ways to do the above. But if it works, it isn't *that* stupid
 
@@ -244,7 +244,7 @@ int aSize(char * cmd1) {
 	if (res == NULL){fprintf(stderr, "Not enough memory!\n"); exit(2);}
 	fread(res, sizeof(char), size, tmp1);
 	fclose(tmp1);
-	//End of stolen code. From: http://www.fundza.com/c4serious/fileIO_reading_ALL/index.html
+	//End of stolen code. From: http://www.fundza.com/c4serious/fileIO_reading_all/index.html
 	free(cmd2);
 	remove("whywouldanyonenameafilethis");
 	return atoi(res);
@@ -272,7 +272,7 @@ char * command(char * cmd1) {
 	if (res == NULL){fprintf(stderr, "Not enough memory!\n"); exit(2);}
 	fread(res, sizeof(char), size, tmp1);
 	fclose(tmp1);
-	//End of stolen code. From: http://www.fundza.com/c4serious/fileIO_reading_ALL/index.html
+	//End of stolen code. From: http://www.fundza.com/c4serious/fileIO_reading_all/index.html
 	free(cmd2);
 	remove("whywouldanyonenameafilethis");
 	return res;
